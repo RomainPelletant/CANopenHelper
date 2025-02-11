@@ -3,6 +3,7 @@
 
 <head>
 	<title>CANopen 402 Statusword</title>
+	<meta charset="UTF-8">
 	<style>
 		span {
 			color: firebrick;
@@ -30,24 +31,26 @@
 	</p>
 
 	<!-- // Output fields -->
-	<p><span id="Ready_to_Switch_On"></span> _00_Ready_to_Switch_On</p>
-	<p><span id="Switched_On"></span> _01_Switched_On</p>
-	<p><span id="Operation_Enabled"></span> _02_Operation_Enabled</p>
-	<p><span id="Fault"></span> _03_Fault</p>
-	<p><span id="Voltage_Disabled"></span> _04_Voltage_Disabled</p>
-	<p><span id="Quick_Stop"></span> _05_Quick_Stop</p>
-	<p><span id="Switch_On_Disabled"></span> _06_Switch_On_Disabled</p>
-	<p><span id="Warning"></span> _07_Warning</p>
-	<p><span id="Manufacturer_Specific"></span> _08_Manufacturer_Specific</p>
-	<p><span id="Remote"></span> _09_Remote</p>
-	<p><span id="Target_Reached"></span> _10_Target_Reached</p>
-	<p><span id="Internal_Limit_Active"></span> _11_Internal_Limit_Active</p>
-	<p><span id="bit12"></span> _12_bit12</p>
-	<p><span id="bit13"></span> _13_bit13</p>
-	<p><span id="bit14"></span> _14_bit14</p>
-	<p><span id="bit15"></span> _15_bit15</p>
+	<div id="status_flags">
+        <label><input type="checkbox" data-bit="0"> _00_Ready_to_Switch_On</label><br>
+        <label><input type="checkbox" data-bit="1"> _01_Switched_On</label><br>
+        <label><input type="checkbox" data-bit="2"> _02_Operation_Enabled</label><br>
+        <label><input type="checkbox" data-bit="3"> _03_Fault</label><br>
+        <label><input type="checkbox" data-bit="4"> _04_Voltage_Disabled</label><br>
+        <label><input type="checkbox" data-bit="5"> _05_Quick_Stop</label><br>
+        <label><input type="checkbox" data-bit="6"> _06_Switch_On_Disabled</label><br>
+        <label><input type="checkbox" data-bit="7"> _07_Warning</label><br>
+        <label><input type="checkbox" data-bit="8"> _08_Pressure_Reached</label><br>
+        <label><input type="checkbox" data-bit="9"> _09_Remote</label><br>
+        <label><input type="checkbox" data-bit="10"> _10_Target_Reached</label><br>
+        <label><input type="checkbox" data-bit="11"> _11_Internal_Limit_Active</label><br>
+        <label><input type="checkbox" data-bit="12"> _12_Set_Point_Acknowledge</label><br>
+        <label><input type="checkbox" data-bit="13"> _13_Following_Error</label><br>
+        <label><input type="checkbox" data-bit="14"> _14_Board_level_POST</label><br>
+        <label><input type="checkbox" data-bit="15"> _15_Motor_POST</label><br>
+    </div>
 	<p><b>State(s)</b></p>
-	<p> <span id="state402"></span></p>
+	<p> <span id="state402"></span></p>
 
 	<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="13 4 760 400">
 		<defs>
@@ -134,58 +137,56 @@
 			_05_Quick_Stop: 0x20,
 			_06_Switch_On_Disabled: 0x40,
 			_07_Warning: 0x80,
-			_08_Manufacturer_Specific: 256,
+			_08_Pressure_Reached: 256,
 			_09_Remote: 512,
 			_10_Target_Reached: 1024,
 			_11_Internal_Limit_Active: 2048,
 			_12_bit12: 4096,
 			_13_bit13: 8192,
-			_14_bit14: 16384,
-			_15_bit15: 32768
+			_14_Board_level_POST: 16384,
+			_15_Motor_POST: 32768
 		}
 
 		var stopRecursion = false
 
-		function updateBoxes(value) {
-			document.getElementById("Ready_to_Switch_On").innerHTML = (value & STATUSWORD._00_Ready_to_Switch_On ? '[X]' : '[_]');
-			document.getElementById("Switched_On").innerHTML = (value & STATUSWORD._01_Switched_On ? '[X]' : '[_]');
-			document.getElementById("Operation_Enabled").innerHTML = (value & STATUSWORD._02_Operation_Enabled ? '[X]' : '[_]');
-			document.getElementById("Fault").innerHTML = (value & STATUSWORD._03_Fault ? '[X]' : '[_]');
-			document.getElementById("Voltage_Disabled").innerHTML = (value & STATUSWORD._04_Voltage_Disabled ? '[X]' : '[_]');
-			document.getElementById("Quick_Stop").innerHTML = (value & STATUSWORD._05_Quick_Stop ? '[X]' : '[_]');
-			document.getElementById("Switch_On_Disabled").innerHTML = (value & STATUSWORD._06_Switch_On_Disabled ? '[X]' : '[_]');
-			document.getElementById("Warning").innerHTML = (value & STATUSWORD._07_Warning ? '[X]' : '[_]');
-			document.getElementById("Manufacturer_Specific").innerHTML = (value & STATUSWORD._08_Manufacturer_Specific ? '[X]' : '[_]');
-			document.getElementById("Remote").innerHTML = (value & STATUSWORD._09_Remote ? '[X]' : '[_]');
-			document.getElementById("Target_Reached").innerHTML = (value & STATUSWORD._10_Target_Reached ? '[X]' : '[_]');
-			document.getElementById("Internal_Limit_Active").innerHTML = (value & STATUSWORD._11_Internal_Limit_Active ? '[X]' : '[_]');
-			document.getElementById("bit12").innerHTML = (value & STATUSWORD._12_bit12 ? '[X]' : '[_]');
-			document.getElementById("bit13").innerHTML = (value & STATUSWORD._13_bit13 ? '[X]' : '[_]');
-			document.getElementById("bit14").innerHTML = (value & STATUSWORD._14_bit14 ? '[X]' : '[_]');
-			document.getElementById("bit15").innerHTML = (value & STATUSWORD._15_bit15 ? '[X]' : '[_]');
+		function updateFromCheckboxes() {
+            let value = 0;
+            document.querySelectorAll("#status_flags input[type='checkbox']").forEach(checkbox => {
+                if (checkbox.checked) {
+                    value |= (1 << parseInt(checkbox.dataset.bit));
+                }
+            });
+            document.getElementById("Statusword_dec").value = value;
+            document.getElementById("Statusword_hex").value = value.toString(16).toUpperCase();
 			document.getElementById("state402").innerHTML = getStateString(value);
+        }
 
-		}
+        function updateCheckboxes(value) {
+            document.querySelectorAll("#status_flags input[type='checkbox']").forEach(checkbox => {
+                let bit = parseInt(checkbox.dataset.bit);
+                checkbox.checked = (value & (1 << bit)) !== 0;
+            });
+			document.getElementById("state402").innerHTML = getStateString(value);
+        }
 
-		function upd_hex(hexval) {
-			if (stopRecursion == false) {
-				stopRecursion = true;
-				newval = parseInt(hexval, 16);
-				document.getElementById("Statusword_dec").value = newval
-				updateBoxes(newval)
-				stopRecursion = false;
-			}
-		}
 
 		function upd_dec(decval) {
-			if (stopRecursion == false) {
-				stopRecursion = true;
-				newhex = parseInt(decval, 10).toString(16)
-				document.getElementById("Statusword_hex").value = newhex
-				updateBoxes(decval)
-				stopRecursion = false;
-			}
-		}
+            let value = parseInt(decval, 10);
+            if (isNaN(value)) return;
+            document.getElementById("Statusword_hex").value = value.toString(16).toUpperCase();
+            updateCheckboxes(value);
+        }
+
+        function upd_hex(hexval) {
+            let value = parseInt(hexval, 16);
+            if (isNaN(value)) return;
+            document.getElementById("Statusword_dec").value = value;
+            updateCheckboxes(value);
+        }
+
+		document.querySelectorAll("#status_flags input[type='checkbox']").forEach(checkbox => {
+            checkbox.addEventListener("change", updateFromCheckboxes);
+        });
 
 
 		function is_Not_Ready_To_Switch_On(sw) {
@@ -252,7 +253,7 @@
 				is_Fault(sw)
 		}
 
-		updateBoxes(0)
+		updateCheckboxes(0);
 
 	</script>
 </body>
